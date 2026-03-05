@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简约待办清单</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6d9dc5;
+            --background-color: #f8f9fa;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --hover-color: #f0f4f8;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .app-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .app-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 左侧面板样式 */
+        .sidebar {
+            background-color: var(--card-color);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--hover-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            font-size: 1.1rem;
+        }
+
+        /* 分类管理样式 */
+        .categories-list {
+            margin-bottom: 30px;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            user-select: none;
+        }
+
+        .category-item:hover {
+            background-color: var(--hover-color);
+        }
+
+        .category-item.active {
+            background-color: #e8f0fe;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .category-icon {
+            width: 24px;
+            text-align: center;
+            margin-right: 12px;
+            color: var(--text-secondary);
+        }
+
+        .category-item.active .category-icon {
+            color: var(--primary-color);
+        }
+
+        .category-count {
+            margin-left: auto;
+            background-color: var(--hover-color);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .category-item.active .category-count {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .add-category-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .add-category-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        .add-category-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .add-category-btn {
+            padding: 12px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+        }
+
+        .add-category-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* 添加任务表单样式 */
+        .add-task-form {
+            margin-top: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+            background-color: white;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* 主内容区样式 */
+        .main-content {
+            background-color: var(--card-color);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .tasks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tasks-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tasks-count {
+            background-color: var(--hover-color);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* 任务列表样式 */
+        .tasks-container {
+            min-height: 500px;
+        }
+
+        .task-card {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: move;
+            position: relative;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .task-card.dragging {
+            opacity: 0.6;
+            background-color: var(--hover-color);
+        }
+
+        .task-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .task-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-color);
+            flex: 1;
+            line-height: 1.4;
+        }
+
+        .task-category {
+            display: inline-block;
+            padding: 4px 12px;
+            background-color: var(--hover-color);
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 12px;
+            margin-left: 15px;
+            white-space: nowrap;
+        }
+
+        .task-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--hover-color);
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-date {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            font-size: 1rem;
+        }
+
+        .edit-btn {
+            color: var(--primary-color);
+        }
+
+        .edit-btn:hover {
+            background-color: rgba(74, 111, 165, 0.1);
+        }
+
+        .delete-btn {
+            color: var(--danger-color);
+        }
+
+        .delete-btn:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+
+        /* 空状态样式 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            color: #d0d7e0;
+            margin-bottom: 20px;
+        }
+
+        .empty-title {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .empty-description {
+            font-size: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* 通知样式 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            font-weight: 500;
+            transform: translateX(120%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        /* 页脚样式 */
+        .app-footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .sidebar {
+                height: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .app-header {
+                margin-bottom: 20px;
+            }
+
+            .app-title {
+                font-size: 1.5rem;
+            }
+
+            .task-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .task-category {
+                margin-left: 0;
+            }
+
+            .task-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .task-actions {
+                align-self: flex-end;
+            }
+        }
+
+        /* 工具类 */
+        .drag-over {
+            background-color: rgba(74, 111, 165, 0.05);
+            border: 2px dashed var(--primary-color);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <h1 class="app-title">简约待办清单</h1>
+        <p class="app-subtitle">简单 · 高效 · 直观</p>
+    </div>
+
+    <div class="app-container">
+        <!-- 左侧面板：分类和添加任务 -->
+        <div class="sidebar">
+            <!-- 分类管理 -->
+            <div class="categories-section">
+                <h3 class="section-title"><i class="fas fa-tags"></i> 分类管理</h3>
+                <div class="categories-list" id="categoryList">
+                    <!-- 分类将通过JS动态生成 -->
+                </div>
+
+                <div class="add-category-form">
+                    <input type="text" class="add-category-input" id="newCategoryInput" placeholder="新分类名称...">
+                    <button class="add-category-btn" id="addCategoryBtn">添加</button>
+                </div>
+            </div>
+
+            <!-- 添加任务 -->
+            <div class="add-task-form">
+                <h3 class="section-title"><i class="fas fa-plus-circle"></i> 添加新任务</h3>
+                <form id="taskForm">
+                    <div class="form-group">
+                        <label for="taskTitle" class="form-label">任务标题</label>
+                        <input type="text" class="form-input" id="taskTitle" placeholder="输入任务标题..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskCategory" class="form-label">分类</label>
+                        <select class="form-select" id="taskCategory" required>
+                            <!-- 分类选项将通过JS动态生成 -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskDescription" class="form-label">任务描述（可选）</label>
+                        <textarea class="form-textarea" id="taskDescription" placeholder="输入任务描述..."></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-plus"></i> 添加任务
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 右侧主内容区：任务列表 -->
+        <div class="main-content">
+            <div class="tasks-header">
+                <h2 class="tasks-title"><i class="fas fa-tasks"></i> 任务列表</h2>
+                <div class="tasks-count" id="taskCount">0 个任务</div>
+            </div>
+
+            <div class="tasks-container" id="tasksContainer">
+                <!-- 任务卡片将通过JS动态生成 -->
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <h3 class="empty-title">暂无任务</h3>
+                    <p class="empty-description">开始添加你的第一个任务吧！</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-footer">
+        <p>数据保存在本地浏览器中 · 支持拖拽排序 · 双击HTML文件即可使用</p>
+    </div>
+
+    <script>
+        // 应用状态
+        const state = {
+            tasks: [],
+            categories: ['工作', '个人', '学习', '购物'],
+            currentCategory: 'all'
+        };
+
+        // DOM元素
+        const elements = {
+            categoryList: document.getElementById('categoryList'),
+            newCategoryInput: document.getElementById('newCategoryInput'),
+            addCategoryBtn: document.getElementById('addCategoryBtn'),
+            taskForm: document.getElementById('taskForm'),
+            taskTitle: document.getElementById('taskTitle'),
+            taskCategory: document.getElementById('taskCategory'),
+            taskDescription: document.getElementById('taskDescription'),
+            tasksContainer: document.getElementById('tasksContainer'),
+            taskCount: document.getElementById('taskCount'),
+            emptyState: document.getElementById('emptyState')
+        };
+
+        // 初始化应用
+        function initApp() {
+            loadFromLocalStorage();
+            renderCategories();
+            renderTaskFormCategories();
+            renderTasks();
+            updateTaskCount();
+            setupEventListeners();
+        }
+
+        // 从本地存储加载数据
+        function loadFromLocalStorage() {
+            const savedTasks = localStorage.getItem('simpleTodoTasks');
+            const savedCategories = localStorage.getItem('simpleTodoCategories');
+
+            if (savedTasks) {
+                state.tasks = JSON.parse(savedTasks);
+            }
+
+            if (savedCategories) {
+                state.categories = JSON.parse(savedCategories);
+            }
+        }
+
+        // 保存数据到本地存储
+        function saveToLocalStorage() {
+            localStorage.setItem('simpleTodoTasks', JSON.stringify(state.tasks));
+            localStorage.setItem('simpleTodoCategories', JSON.stringify(state.categories));
+        }
+
+        // 渲染分类列表
+        function renderCategories() {
+            elements.categoryList.innerHTML = '';
+
+            // 添加"全部"分类
+            const allCategory = createCategoryElement('all', '全部任务', 'layer-group', state.tasks.length);
+            elements.categoryList.appendChild(allCategory);
+
+            // 渲染每个分类
+            state.categories.forEach(category => {
+                const count = state.tasks.filter(task => task.category === category).length;
+                const categoryElement = createCategoryElement(category, category, getCategoryIcon(category), count);
+                elements.categoryList.appendChild(categoryElement);
+            });
+        }
+
+        // 创建分类元素
+        function createCategoryElement(id, name, icon, count) {
+            const div = document.createElement('div');
+            div.className = `category-item ${state.currentCategory === id ? 'active' : ''}`;
+            div.setAttribute('data-category', id);
+
+            div.innerHTML = `
+                <div class="category-icon">
+                    <i class="fas fa-${icon}"></i>
+                </div>
+                <span class="category-name">${escapeHtml(name)}</span>
+                <span class="category-count">${count}</span>
+            `;
+
+            div.addEventListener('click', () => {
+                state.currentCategory = id;
+                renderCategories();
+                renderTasks();
+                updateTaskCount();
+            });
+
+            return div;
+        }
+
+        // 获取分类图标
+        function getCategoryIcon(category) {
+            const iconMap = {
+                '工作': 'briefcase',
+                '个人': 'user',
+                '学习': 'graduation-cap',
+                '购物': 'shopping-cart',
+                '健康': 'heartbeat',
+                '旅行': 'plane',
+                '家庭': 'home',
+                '财务': 'money-bill'
+            };
+
+            return iconMap[category] || 'tag';
+        }
+
+        // 渲染任务表单中的分类选项
+        function renderTaskFormCategories() {
+            elements.taskCategory.innerHTML = '';
+
+            state.categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                elements.taskCategory.appendChild(option);
+            });
+
+            // 如果没有分类，添加一个默认选项
+            if (state.categories.length === 0) {
+                const option = document.createElement('option');
+                option.value = '未分类';
+                option.textContent = '未分类';
+                elements.taskCategory.appendChild(option);
+            }
+        }
+
+        // 渲染任务列表
+        function renderTasks() {
+            elements.tasksContainer.innerHTML = '';
+
+            // 筛选任务
+            let filteredTasks = state.tasks;
+            if (state.currentCategory !== 'all') {
+                filteredTasks = state.tasks.filter(task => task.category === state.currentCategory);
+            }
+
+            // 如果没有任务，显示空状态
+            if (filteredTasks.length === 0) {
+                elements.emptyState.classList.remove('hidden');
+                elements.tasksContainer.appendChild(elements.emptyState);
+                return;
+            }
+
+            elements.emptyState.classList.add('hidden');
+
+            // 渲染每个任务卡片
+            filteredTasks.forEach((task, index) => {
+                const taskCard = createTaskCard(task, index);
+                elements.tasksContainer.appendChild(taskCard);
+            });
+
+            // 设置拖拽功能
+            setupDragAndDrop();
+        }
+
+        // 创建任务卡片元素
+        function createTaskCard(task, index) {
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.setAttribute('data-id', task.id);
+            card.setAttribute('draggable', 'true');
+
+            card.innerHTML = `
+                <div class="task-card-header">
+                    <div class="task-title">${escapeHtml(task.title)}</div>
+                    <span class="task-category">${escapeHtml(task.category)}</span>
+                </div>
+                ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
+                <div class="task-footer">
+                    <div class="task-date">
+                        <i class="far fa-calendar"></i>
+                        <span>${formatDate(task.createdAt)}</span>
+                    </div>
+                    <div class="task-actions">
+                        <button class="action-btn edit-btn" title="编辑任务">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" title="删除任务">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // 添加编辑事件
+            const editBtn = card.querySelector('.edit-btn');
+            editBtn.addEventListener('click', () => editTask(task.id));
+
+            // 添加删除事件
+            const deleteBtn = card.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', () => deleteTask(task.id));
+
+            // 拖拽事件
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragover', handleDragOver);
+            card.addEventListener('dragenter', handleDragEnter);
+            card.addEventListener('dragleave', handleDragLeave);
+            card.addEventListener('drop', handleDrop);
+            card.addEventListener('dragend', handleDragEnd);
+
+            return card;
+        }
+
+        // 转义HTML，防止XSS攻击
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 格式化日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) {
+                return '今天 ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            } else if (diffDays === 1) {
+                return '昨天 ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            } else {
+                return date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            }
+        }
+
+        // 更新任务计数
+        function updateTaskCount() {
+            let count = state.tasks.length;
+            if (state.currentCategory !== 'all') {
+                count = state.tasks.filter(task => task.category === state.currentCategory).length;
+            }
+
+            elements.taskCount.textContent = `${count} 个任务`;
+
+            // 更新分类计数
+            document.querySelectorAll('.category-item').forEach(item => {
+                const category = item.getAttribute('data-category');
+                let count = 0;
+
+                if (category === 'all') {
+                    count = state.tasks.length;
+                } else {
+                    count = state.tasks.filter(task => task.category === category).length;
+                }
+
+                const countElement = item.querySelector('.category-count');
+                if (countElement) {
+                    countElement.textContent = count;
+                }
+            });
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 添加分类事件
+            elements.addCategoryBtn.addEventListener('click', addNewCategory);
+            elements.newCategoryInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addNewCategory();
+                }
+            });
+
+            // 添加任务事件
+            elements.taskForm.addEventListener('submit', addNewTask);
+        }
+
+        // 添加新分类
+        function addNewCategory() {
+            const newCategory = elements.newCategoryInput.value.trim();
+
+            if (!newCategory) {
+                showNotification('请输入分类名称');
+                return;
+            }
+
+            if (state.categories.includes(newCategory)) {
+                showNotification('该分类已存在');
+                return;
+            }
+
+            state.categories.push(newCategory);
+            elements.newCategoryInput.value = '';
+
+            saveToLocalStorage();
+            renderCategories();
+            renderTaskFormCategories();
+            showNotification('分类添加成功');
+        }
+
+        // 添加新任务
+        function addNewTask(e) {
+            e.preventDefault();
+
+            const title = elements.taskTitle.value.trim();
+            const category = elements.taskCategory.value;
+            const description = elements.taskDescription.value.trim();
+
+            if (!title) {
+                showNotification('请输入任务标题');
+                return;
+            }
+
+            // 创建新任务对象
+            const newTask = {
+                id: Date.now().toString(),
+                title,
+                category,
+                description,
+                createdAt: new Date().toISOString(),
+                completed: false
+            };
+
+            // 添加到任务列表
+            state.tasks.push(newTask);
+
+            // 重置表单
+            elements.taskForm.reset();
+
+            // 保存并更新UI
+            saveToLocalStorage();
+            renderTasks();
+            updateTaskCount();
+
+            // 显示成功提示
+            showNotification('任务添加成功');
+        }
+
+        // 编辑任务
+        function editTask(taskId) {
+            const task = state.tasks.find(t => t.id === taskId);
+
+            if (!task) return;
+
+            // 使用表单数据填充
+            elements.taskTitle.value = task.title;
+            elements.taskCategory.value = task.category;
+            elements.taskDescription.value = task.description;
+
+            // 修改表单行为为更新任务
+            const originalSubmitHandler = elements.taskForm.onsubmit;
+            const submitBtn = elements.taskForm.querySelector('.submit-btn');
+
+            elements.taskForm.onsubmit = function(e) {
+                e.preventDefault();
+
+                task.title = elements.taskTitle.value.trim();
+                task.category = elements.taskCategory.value;
+                task.description = elements.taskDescription.value.trim();
+
+                // 保存并更新UI
+                saveToLocalStorage();
+                renderTasks();
+                updateTaskCount();
+
+                // 重置表单行为
+                elements.taskForm.onsubmit = originalSubmitHandler;
+                elements.taskForm.reset();
+                submitBtn.innerHTML = `<i class="fas fa-plus"></i> 添加任务`;
+
+                showNotification('任务更新成功');
+            };
+
+            // 更改提交按钮文本
+            submitBtn.innerHTML = `<i class="fas fa-save"></i> 更新任务`;
+
+            // 滚动到表单
+            document.querySelector('.sidebar').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 删除任务
+        function deleteTask(taskId) {
+            if (!confirm('确定要删除这个任务吗？')) return;
+
+            const taskIndex = state.tasks.findIndex(t => t.id === taskId);
+            if (taskIndex === -1) return;
+
+            state.tasks.splice(taskIndex, 1);
+
+            saveToLocalStorage();
+            renderTasks();
+            updateTaskCount();
+
+            showNotification('任务已删除');
+        }
+
+        // 显示通知
+        function showNotification(message) {
+            // 移除现有的通知
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            // 显示通知
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+
+            // 3秒后隐藏并移除通知
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // 拖拽相关变量
+        let draggedTask = null;
+        let dragOverContainer = null;
+
+        // 设置拖拽功能
+        function setupDragAndDrop() {
+            const taskCards = document.querySelectorAll('.task-card');
+
+            taskCards.forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragover', handleDragOver);
+                card.addEventListener('dragenter', handleDragEnter);
+                card.addEventListener('dragleave', handleDragLeave);
+                card.addEventListener('drop', handleDrop);
+                card.addEventListener('dragend', handleDragEnd);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedTask = this;
+            this.classList.add('dragging');
+
+            // 设置拖拽效果
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.getAttribute('data-id'));
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            if (this !== draggedTask) {
+                this.classList.add('drag-over');
+                dragOverContainer = this;
+            }
+        }
+
+        function handleDragLeave() {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            this.classList.remove('drag-over');
+
+            if (draggedTask && draggedTask !== this) {
+                // 获取任务ID
+                const draggedId = draggedTask.getAttribute('data-id');
+                const targetId = this.getAttribute('data-id');
+
+                // 在数组中重新排序任务
+                const draggedIndex = state.tasks.findIndex(task => task.id === draggedId);
+                const targetIndex = state.tasks.findIndex(task => task.id === targetId);
+
+                if (draggedIndex !== -1 && targetIndex !== -1) {
+                    // 从数组中移除拖拽的任务
+                    const [draggedTaskObj] = state.tasks.splice(draggedIndex, 1);
+                    // 插入到目标位置
+                    state.tasks.splice(targetIndex, 0, draggedTaskObj);
+
+                    // 保存并重新渲染
+                    saveToLocalStorage();
+                    renderTasks();
+
+                    showNotification('任务顺序已更新');
+                }
+            }
+
+            return false;
+        }
+
+        function handleDragEnd() {
+            this.classList.remove('dragging');
+            this.classList.remove('drag-over');
+
+            // 移除所有drag-over类
+            const dragOverElements = document.querySelectorAll('.drag-over');
+            dragOverElements.forEach(el => {
+                el.classList.remove('drag-over');
+            });
+
+            draggedTask = null;
+            dragOverContainer = null;
+        }
+
+        // 页面加载完成后初始化应用
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
